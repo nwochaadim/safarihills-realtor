@@ -377,7 +377,7 @@ export default function BookingsScreen() {
                 >
                   <Feather name="external-link" size={18} color="#fff" />
                   <Text className="ml-2 text-base font-semibold text-white">
-                    View listing detail
+                    View Apartment
                   </Text>
                 </Pressable>
               </>
