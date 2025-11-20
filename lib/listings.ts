@@ -20,6 +20,7 @@ export type Listing = {
   amenities: string[];
   description: string;
   reviews: ListingReview[];
+  availability: Record<string, boolean>;
 };
 
 const formatPrice = (value: number) => `₦${value.toLocaleString()}`;
@@ -62,6 +63,16 @@ export const LISTINGS: Listing[] = [
           "Perfect for business trips. The natural light and balcony view are amazing.",
       },
     ],
+    availability: {
+      "2025-01-05": true,
+      "2025-01-08": true,
+      "2025-01-10": false,
+      "2025-01-12": false,
+      "2025-01-15": true,
+      "2025-01-19": true,
+      "2025-01-22": false,
+      "2025-01-28": true,
+    },
   },
   {
     id: "apartment-2",
@@ -100,6 +111,16 @@ export const LISTINGS: Listing[] = [
           "Spacious, clean, and ideal for high-profile guests. Highly recommend.",
       },
     ],
+    availability: {
+      "2025-02-02": true,
+      "2025-02-03": true,
+      "2025-02-10": false,
+      "2025-02-11": false,
+      "2025-02-14": true,
+      "2025-02-18": false,
+      "2025-02-25": true,
+      "2025-02-28": false,
+    },
   },
   {
     id: "apartment-3",
@@ -130,6 +151,15 @@ export const LISTINGS: Listing[] = [
           "Comfortable stay and responsive support team. The balcony sunsets are gorgeous.",
       },
     ],
+    availability: {
+      "2025-01-07": true,
+      "2025-01-09": false,
+      "2025-01-13": true,
+      "2025-01-17": false,
+      "2025-01-20": true,
+      "2025-01-24": true,
+      "2025-01-27": false,
+    },
   },
   {
     id: "apartment-4",
@@ -160,6 +190,16 @@ export const LISTINGS: Listing[] = [
           "My VIP client was impressed by the automation and concierge. Worth every naira.",
       },
     ],
+    availability: {
+      "2025-03-04": true,
+      "2025-03-05": true,
+      "2025-03-08": false,
+      "2025-03-11": true,
+      "2025-03-15": false,
+      "2025-03-19": true,
+      "2025-03-22": true,
+      "2025-03-27": false,
+    },
   },
 ];
 

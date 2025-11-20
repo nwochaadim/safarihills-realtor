@@ -18,7 +18,14 @@ import { LISTINGS } from "../../lib/listings";
 
 const { width } = Dimensions.get("window");
 const IMAGE_HEIGHT = width * 0.9;
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<string>);
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const formatDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const formatCurrencyInput = (value: string) => {
   const digitsOnly = value.replace(/[^\d]/g, "");
@@ -39,15 +46,24 @@ export default function ListingDetailScreen() {
   const [rentAmount, setRentAmount] = useState("0");
   const [shareLink, setShareLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [availabilityVisible, setAvailabilityVisible] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
   const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (listing) {
       setRentAmount(listing.pricePerNight.toLocaleString());
+      const firstKey = Object.keys(listing.availability ?? {})[0];
+      setCalendarMonth(firstKey ? new Date(firstKey) : new Date());
+    }
+  }, [listing]);
+
+  useEffect(() => {
+    if (rentSheetVisible) {
       setShareLink("");
       setCopied(false);
     }
-  }, [listing, rentSheetVisible]);
+  }, [rentSheetVisible]);
 
   if (!listing) {
     return (
@@ -91,6 +107,55 @@ export default function ListingDetailScreen() {
     outputRange: [0, -IMAGE_HEIGHT * 0.25],
     extrapolate: "clamp",
   });
+  const changeMonth = (direction: 1 | -1) => {
+    setCalendarMonth((prev) => {
+      const next = new Date(prev);
+      next.setMonth(prev.getMonth() + direction, 1);
+      return next;
+    });
+  };
+
+  const calendarLabel = calendarMonth.toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const calendarDays = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
+    const startDate = new Date(startOfMonth);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+    const endDate = new Date(endOfMonth);
+    endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+    const days: {
+      date: Date;
+      isCurrentMonth: boolean;
+      status: "available" | "booked" | "past";
+    }[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const iterator = new Date(startDate);
+    while (iterator <= endDate) {
+      const currentDate = new Date(iterator);
+      const key = formatDateKey(currentDate);
+      const isCurrentMonth = currentDate.getMonth() === month;
+      const isPast = currentDate < today;
+      const isBooked = listing.availability?.[key] === false;
+      let status: "available" | "booked" | "past" = "available";
+      if (!isCurrentMonth || isPast) {
+        status = "past";
+      } else if (isBooked) {
+        status = "booked";
+      } else {
+        status = "available";
+      }
+      days.push({ date: currentDate, isCurrentMonth, status });
+      iterator.setDate(iterator.getDate() + 1);
+    }
+    return days;
+  }, [calendarMonth, listing.availability]);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -107,7 +172,7 @@ export default function ListingDetailScreen() {
           zIndex: 10,
         }}
       >
-        <AnimatedFlatList
+        <FlatList
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
@@ -205,6 +270,16 @@ export default function ListingDetailScreen() {
             {listing.description}
           </Text>
 
+          <Pressable
+            className="mt-6 flex-row items-center justify-center rounded-full border border-blue-200 bg-white py-3"
+            onPress={() => setAvailabilityVisible(true)}
+          >
+            <Feather name="calendar" size={18} color="#1d4ed8" />
+            <Text className="ml-2 text-base font-semibold text-blue-700">
+              View availability
+            </Text>
+          </Pressable>
+
           <View className="mt-8 rounded-3xl border border-blue-50 bg-blue-50/40 p-5 shadow-sm shadow-blue-100">
             <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
               Amenities
@@ -251,6 +326,96 @@ export default function ListingDetailScreen() {
           </View>
         </View>
       </Animated.ScrollView>
+
+      <Modal animationType="slide" transparent visible={availabilityVisible}>
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="rounded-t-[32px] bg-white px-6 pb-8 pt-6">
+            <View className="mb-6 h-1 w-14 self-center rounded-full bg-slate-200" />
+            <View className="flex-row items-center justify-between">
+              <Text className="text-2xl font-bold text-slate-900">
+                Availability
+              </Text>
+              <Pressable onPress={() => setAvailabilityVisible(false)}>
+                <Feather name="x" size={22} color="#0f172a" />
+              </Pressable>
+            </View>
+            <Text className="mt-1 text-sm text-slate-500">
+              Discover open nights and hold dates before sharing with clients.
+            </Text>
+
+            <View className="mt-5 flex-row items-center justify-between">
+              <Pressable
+                className="rounded-full border border-slate-200 p-2"
+                onPress={() => changeMonth(-1)}
+              >
+                <Feather name="chevron-left" size={18} color="#0f172a" />
+              </Pressable>
+              <Text className="text-base font-semibold text-slate-900">
+                {calendarLabel}
+              </Text>
+              <Pressable
+                className="rounded-full border border-slate-200 p-2"
+                onPress={() => changeMonth(1)}
+              >
+                <Feather name="chevron-right" size={18} color="#0f172a" />
+              </Pressable>
+            </View>
+
+            <View className="mt-4 flex-row justify-between">
+              {WEEKDAYS.map((day) => (
+                <Text
+                  key={day}
+                  className="w-[13%] text-center text-xs font-semibold uppercase text-slate-400"
+                >
+                  {day}
+                </Text>
+              ))}
+            </View>
+
+            <View className="mt-3 flex-row flex-wrap">
+              {calendarDays.map((dayInfo) => {
+                const dayNumber = dayInfo.date.getDate();
+                const key = formatDateKey(dayInfo.date);
+                const isBlocked = listing.availability?.[key] === false;
+                const isFaded = !dayInfo.isCurrentMonth || dayInfo.status === "past";
+                let containerClass =
+                  "m-[1.5%] h-12 w-[13%] items-center justify-center rounded-2xl border";
+                let textClass = "text-sm font-semibold";
+                if (isFaded) {
+                  containerClass += " border-slate-100 bg-slate-50";
+                  textClass += " text-slate-300";
+                } else if (isBlocked) {
+                  containerClass += " border-rose-100 bg-rose-50";
+                  textClass += " text-rose-500";
+                } else {
+                  containerClass += " border-blue-100 bg-blue-50";
+                  textClass += " text-blue-700";
+                }
+                return (
+                  <View key={`${key}-${dayNumber}`} className={containerClass}>
+                    <Text className={textClass}>{dayNumber}</Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            <View className="mt-4 flex-row items-center gap-6">
+              <View className="flex-row items-center gap-2">
+                <View className="h-2.5 w-6 rounded-full bg-blue-500" />
+                <Text className="text-xs text-slate-500">Available</Text>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <View className="h-2.5 w-6 rounded-full bg-rose-400" />
+                <Text className="text-xs text-slate-500">Booked / held</Text>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <View className="h-2.5 w-6 rounded-full bg-slate-200" />
+                <Text className="text-xs text-slate-500">Past</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Animated.View
         className="absolute left-0 right-0 bg-white px-6 pb-10 pt-4 shadow-lg shadow-slate-200"
