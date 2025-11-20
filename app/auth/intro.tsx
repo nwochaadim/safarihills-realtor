@@ -10,7 +10,7 @@ import {
   ViewToken,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 
 type IntroSlide = {
   id: string;
@@ -90,8 +90,9 @@ export default function IntroScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="px-6 pt-4">
-        <Text className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">
+        <Text className="text-base font-semibold uppercase tracking-[0.3em] text-blue-500">
           Safarihills Realtor
         </Text>
         <Text className="mt-2 text-3xl font-bold text-slate-900">
