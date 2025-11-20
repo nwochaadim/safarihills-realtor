@@ -53,8 +53,9 @@ export default function ListingDetailScreen() {
   useEffect(() => {
     if (listing) {
       setRentAmount(listing.pricePerNight.toLocaleString());
-      const firstKey = Object.keys(listing.availability ?? {})[0];
-      setCalendarMonth(firstKey ? new Date(firstKey) : new Date());
+      const now = new Date();
+      now.setDate(1);
+      setCalendarMonth(now);
     }
   }, [listing]);
 
