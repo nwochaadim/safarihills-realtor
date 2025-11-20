@@ -1,3 +1,4 @@
+import { Feather } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import {
   Pressable,
@@ -6,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
 
 const QUESTS = [
@@ -44,8 +44,21 @@ const QUESTS = [
   },
 ] as const;
 
-const earnedBadges = ["Silver", "Ruby"];
+const earnedBadgesThisMonth = ["Silver", "Ruby"];
 const currentPoints = 260;
+const currentMonthLabel = new Date().toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+});
+
+const historicalBadges: Array<typeof QUESTS[number]["badge"]> = [
+  "Silver",
+  "Ruby",
+  "Gold",
+  "Silver",
+  "Ruby",
+  "Silver",
+];
 
 const currentQuestIndex = QUESTS.findIndex(
   (quest) => currentPoints < quest.requiredPoints
@@ -124,6 +137,14 @@ export default function RewardsScreen() {
   }, [currentPoints, currentQuest, previousQuest]);
 
   const [actionsVisible, setActionsVisible] = useState(false);
+  const [showHistorical, setShowHistorical] = useState(false);
+  const badgeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    historicalBadges.forEach((badge) => {
+      counts[badge] = (counts[badge] || 0) + 1;
+    });
+    return counts;
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -136,10 +157,10 @@ export default function RewardsScreen() {
             Safarihills
           </Text>
           <Text className="mt-1 text-3xl font-bold text-slate-900">
-            Quest progression
+            Your Rewards
           </Text>
           <Text className="mt-1 text-sm text-slate-500">
-            {earnedBadges.length} badges unlocked • {currentPoints} points earned
+            {currentMonthLabel} • {currentPoints} pts
           </Text>
         </View>
 
@@ -188,7 +209,7 @@ export default function RewardsScreen() {
           </Text>
           <View className="mt-4 flex-row flex-wrap gap-3">
             {QUESTS.map((quest) => {
-              const unlocked = earnedBadges.includes(quest.badge);
+              const unlocked = earnedBadgesThisMonth.includes(quest.badge);
               return (
                 <View
                   key={quest.id}
@@ -210,7 +231,7 @@ export default function RewardsScreen() {
                   </Text>
                   {unlocked ? (
                     <Text className="mt-1 text-xs font-semibold text-blue-600">
-                      Earned previously
+                      Earned this month
                     </Text>
                   ) : (
                     <Text className="mt-1 text-xs text-slate-400">
@@ -229,7 +250,7 @@ export default function RewardsScreen() {
           </Text>
           <View className="mt-4 space-y-4">
             {QUESTS.map((quest, index) => {
-              const unlocked = earnedBadges.includes(quest.badge);
+              const unlocked = earnedBadgesThisMonth.includes(quest.badge);
               const next =
                 index === currentQuestIndex ||
                 (currentQuestIndex === -1 && index === QUESTS.length - 1);
@@ -292,6 +313,43 @@ export default function RewardsScreen() {
             })}
           </View>
         </View>
+
+        <Pressable
+          className="mt-8 flex-row items-center justify-between rounded-3xl border border-slate-100 bg-white px-4 py-3 shadow-sm shadow-slate-50"
+          onPress={() => setShowHistorical((prev) => !prev)}
+        >
+          <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+            All Badges Earned • 2025
+          </Text>
+          <Feather
+            name={showHistorical ? "chevron-up" : "chevron-down"}
+            size={18}
+            color="#475569"
+          />
+        </Pressable>
+        {showHistorical ? (
+          <View className="mt-4 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm shadow-slate-50">
+            {Object.entries(badgeCounts).map(([badge, count]) => (
+              <View
+                key={badge}
+                className="mb-3 flex-row items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3"
+              >
+                <View className="flex-row items-center gap-3">
+                  <Text className="text-2xl">{medalEmoji[badge as keyof typeof medalEmoji]}</Text>
+                  <Text className="text-sm font-semibold text-slate-900">
+                    {badge} badge
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-sm font-semibold text-blue-600">
+                    ×{count}
+                  </Text>
+                  <Feather name="check-circle" size={18} color="#16a34a" />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </ScrollView>
       {actionsVisible ? (
         <View className="absolute inset-0 bg-black/40 px-6 pt-12">
