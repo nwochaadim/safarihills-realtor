@@ -1,3 +1,6 @@
+import { Feather } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -11,9 +14,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
 import { LISTINGS } from "../../lib/listings";
 
 const { width } = Dimensions.get("window");
@@ -126,19 +126,26 @@ export default function ListingDetailScreen() {
                 imageStyle={{ opacity: 0.95 }}
               >
                 <View className="absolute inset-0 bg-black/30" />
-                <View className="absolute inset-x-0 top-0 px-6 pt-14">
-                  <Pressable
-                    className="w-12 items-center justify-center rounded-full bg-white/85 py-3"
-                    onPress={() => router.back()}
-                    hitSlop={12}
-                  >
-                    <Feather name="arrow-left" size={20} color="#0f172a" />
-                  </Pressable>
-                </View>
               </ImageBackground>
             </View>
           )}
         />
+        <View
+          style={{
+            position: "absolute",
+            top: 50,
+            left: 15,
+            right: 24,
+          }}
+        >
+          <Pressable
+            className="w-12 items-center justify-center rounded-full bg-white/85 py-3"
+            onPress={() => router.back()}
+            hitSlop={12}
+          >
+            <Feather name="arrow-left" size={20} color="#0f172a" />
+          </Pressable>
+        </View>
         <View
           className="flex-row items-center justify-center gap-2"
           style={{ position: "absolute", bottom: 16, left: 0, right: 0 }}
