@@ -78,7 +78,10 @@ export default function SignUpScreen() {
       "Account created",
       `${firstName.trim()}, your Safarihills realtor profile is ready.`
     );
-    router.back();
+    router.push({
+      pathname: "/auth/otp",
+      params: { email: email.trim() },
+    });
   };
 
   const inputWrapperClass =
