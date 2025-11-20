@@ -113,8 +113,16 @@ export default function LoginScreen() {
             </View>
           </View>
 
+          <View className="mt-4 flex-row justify-end">
+            <Pressable onPress={() => router.push("/auth/forgot-password")}>
+              <Text className="text-sm font-semibold text-blue-600">
+                Forgot password?
+              </Text>
+            </Pressable>
+          </View>
+
           {error ? (
-            <Text className="mt-6 text-center text-sm font-medium text-red-500">
+            <Text className="mt-4 text-center text-sm font-medium text-red-500">
               {error}
             </Text>
           ) : null}
