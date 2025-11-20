@@ -36,6 +36,7 @@ export default function LoginScreen() {
 
     setError(null);
     Alert.alert("Welcome back!", "You are now signed in to Safarihills Realtor");
+    router.replace("/(tabs)/home");
   };
 
   return (

@@ -69,7 +69,7 @@ export default function OtpScreen() {
         return;
       }
       Alert.alert("Verification complete", "Your account is now verified.");
-      router.replace("/");
+      router.replace("/(tabs)/home");
     }, 800);
   };
 
