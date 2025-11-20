@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -96,12 +97,16 @@ const INITIAL_FILTER_STATE = {
   amenities: [] as string[],
 };
 
-const MIN_BUDGET_OPTIONS = ["40000", "60000", "80000", "100000"];
-const MAX_BUDGET_OPTIONS = ["80000", "120000", "150000", "250000"];
 const GUEST_OPTIONS = ["1", "2", "3", "4", "5", "6+"];
 
 const parsePrice = (price: string) =>
   Number(price.replace(/[^\d]/g, ""));
+
+const formatCurrencyInput = (value: string) => {
+  const digitsOnly = value.replace(/[^\d]/g, "");
+  if (!digitsOnly) return "";
+  return Number(digitsOnly).toLocaleString();
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -117,9 +122,15 @@ export default function HomeScreen() {
         if (apartment.guests < guestLimit) return false;
       }
       const nightlyRate = parsePrice(apartment.price);
-      if (filters.minBudget && nightlyRate < Number(filters.minBudget))
+      const minBudgetValue = filters.minBudget
+        ? Number(filters.minBudget.replace(/,/g, ""))
+        : null;
+      const maxBudgetValue = filters.maxBudget
+        ? Number(filters.maxBudget.replace(/,/g, ""))
+        : null;
+      if (minBudgetValue !== null && nightlyRate < minBudgetValue)
         return false;
-      if (filters.maxBudget && nightlyRate > Number(filters.maxBudget))
+      if (maxBudgetValue !== null && nightlyRate > maxBudgetValue)
         return false;
       if (filters.amenities.length > 0) {
         const hasAll = filters.amenities.every((a) =>
@@ -246,68 +257,34 @@ export default function HomeScreen() {
               <Text className="text-xs font-semibold uppercase text-slate-400">
                 Budget per night (₦)
               </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                className="mt-3"
-              >
-                <View className="flex-row gap-3">
-                  {MIN_BUDGET_OPTIONS.map((value) => {
-                    const isActive = filters.minBudget === value;
-                    return (
-                      <Pressable
-                        key={`min-${value}`}
-                        className={`rounded-full px-4 py-2 ${
-                          isActive
-                            ? "bg-blue-600"
-                            : "border border-slate-200 bg-white"
-                        }`}
-                        onPress={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            minBudget: isActive ? "" : value,
-                          }))
-                        }
-                      >
-                        <Text
-                          className={`text-sm font-semibold ${
-                            isActive ? "text-white" : "text-slate-600"
-                          }`}
-                        >
-                          Min ₦{Number(value).toLocaleString()}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                  {MAX_BUDGET_OPTIONS.map((value) => {
-                    const isActive = filters.maxBudget === value;
-                    return (
-                      <Pressable
-                        key={`max-${value}`}
-                        className={`rounded-full px-4 py-2 ${
-                          isActive
-                            ? "bg-blue-600"
-                            : "border border-slate-200 bg-white"
-                        }`}
-                        onPress={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            maxBudget: isActive ? "" : value,
-                          }))
-                        }
-                      >
-                        <Text
-                          className={`text-sm font-semibold ${
-                            isActive ? "text-white" : "text-slate-600"
-                          }`}
-                        >
-                          Max ₦{Number(value).toLocaleString()}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </ScrollView>
+              <View className="mt-3 flex-row gap-3">
+                <TextInput
+                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-base font-semibold text-slate-900"
+                  keyboardType="number-pad"
+                  placeholder="Min"
+                  placeholderTextColor="#94a3b8"
+                  value={filters.minBudget}
+                  onChangeText={(value) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      minBudget: formatCurrencyInput(value),
+                    }))
+                  }
+                />
+                <TextInput
+                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-base font-semibold text-slate-900"
+                  keyboardType="number-pad"
+                  placeholder="Max"
+                  placeholderTextColor="#94a3b8"
+                  value={filters.maxBudget}
+                  onChangeText={(value) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      maxBudget: formatCurrencyInput(value),
+                    }))
+                  }
+                />
+              </View>
             </View>
 
             <View className="mt-5">
