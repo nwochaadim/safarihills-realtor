@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Dimensions,
   FlatList,
   ImageBackground,
   Modal,
   Pressable,
   SafeAreaView,
-  ScrollView,
   Text,
   TextInput,
   View,
@@ -17,7 +17,8 @@ import * as Clipboard from "expo-clipboard";
 import { LISTINGS } from "../../lib/listings";
 
 const { width } = Dimensions.get("window");
-const IMAGE_HEIGHT = width * 0.7;
+const IMAGE_HEIGHT = width * 0.9;
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<string>);
 
 const formatCurrencyInput = (value: string) => {
   const digitsOnly = value.replace(/[^\d]/g, "");
@@ -38,6 +39,7 @@ export default function ListingDetailScreen() {
   const [rentAmount, setRentAmount] = useState("0");
   const [shareLink, setShareLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (listing) {
@@ -79,65 +81,94 @@ export default function ListingDetailScreen() {
     setTimeout(() => setCopied(false), 1600);
   };
 
+  const headerHeight = scrollY.interpolate({
+    inputRange: [-100, 0, IMAGE_HEIGHT],
+    outputRange: [IMAGE_HEIGHT + 120, IMAGE_HEIGHT, IMAGE_HEIGHT * 0.65],
+    extrapolate: "clamp",
+  });
+  const headerTranslate = scrollY.interpolate({
+    inputRange: [0, IMAGE_HEIGHT],
+    outputRange: [0, -IMAGE_HEIGHT * 0.25],
+    extrapolate: "clamp",
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 140 }}
-        showsVerticalScrollIndicator={false}
+
+      <Animated.View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: headerHeight,
+          transform: [{ translateY: headerTranslate }],
+          zIndex: 10,
+        }}
       >
-        <View className="px-6 pt-4">
-          <Pressable
-            className="mb-4 w-12 items-center justify-center rounded-full border border-slate-200 bg-white/90 py-3"
-            onPress={() => router.back()}
-          >
-            <Feather name="arrow-left" size={20} color="#0f172a" />
-          </Pressable>
-        </View>
-
-        <View>
-          <FlatList
-            data={listing.gallery}
-            horizontal
-            pagingEnabled
-            keyExtractor={(uri, index) => `${uri}-${index}`}
-            renderItem={({ item }) => (
-              <View style={{ width }}>
-                <View
-                  className="mx-6 overflow-hidden rounded-[32px]"
-                  style={{ height: IMAGE_HEIGHT }}
-                >
-                  <ImageBackground
-                    source={{ uri: item }}
-                    className="flex-1"
-                    imageStyle={{ borderRadius: 32 }}
-                  />
+        <AnimatedFlatList
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          style={{ flex: 1 }}
+          data={listing.gallery}
+          keyExtractor={(uri, index) => `${uri}-${index}`}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            setActiveImage(index);
+          }}
+          renderItem={({ item }) => (
+            <View style={{ width, height: "100%" }}>
+              <ImageBackground
+                source={{ uri: item }}
+                className="flex-1"
+                imageStyle={{ opacity: 0.95 }}
+              >
+                <View className="absolute inset-0 bg-black/30" />
+                <View className="absolute inset-x-0 top-0 px-6 pt-14">
+                  <Pressable
+                    className="w-12 items-center justify-center rounded-full bg-white/85 py-3"
+                    onPress={() => router.back()}
+                    hitSlop={12}
+                  >
+                    <Feather name="arrow-left" size={20} color="#0f172a" />
+                  </Pressable>
                 </View>
-              </View>
-            )}
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x / width
-              );
-              setActiveImage(index);
-            }}
-          />
-          <View className="mt-3 flex-row items-center justify-center gap-2">
-            {listing.gallery.map((_, index) => (
-              <View
-                key={index}
-                className={`h-2 rounded-full ${
-                  index === activeImage ? "w-8 bg-blue-600" : "w-3 bg-blue-200"
-                }`}
-              />
-            ))}
-          </View>
+              </ImageBackground>
+            </View>
+          )}
+        />
+        <View
+          className="flex-row items-center justify-center gap-2"
+          style={{ position: "absolute", bottom: 16, left: 0, right: 0 }}
+        >
+          {listing.gallery.map((_, index) => (
+            <View
+              key={`${index}-dot`}
+              className={`h-1.5 rounded-full ${
+                index === activeImage ? "w-10 bg-white" : "w-4 bg-white/60"
+              }`}
+            />
+          ))}
         </View>
+      </Animated.View>
 
+      <Animated.ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 160,
+          paddingTop: IMAGE_HEIGHT + 48,
+        }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
         <View className="px-6">
-          <View className="mt-6 flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">
                 {listing.type}
@@ -167,6 +198,24 @@ export default function ListingDetailScreen() {
             {listing.description}
           </Text>
 
+          <View className="mt-8 rounded-3xl border border-blue-50 bg-blue-50/40 p-5 shadow-sm shadow-blue-100">
+            <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
+              Amenities
+            </Text>
+            <View className="mt-4 flex-row flex-wrap gap-3">
+              {listing.amenities.map((amenity) => (
+                <View
+                  key={amenity}
+                  className="rounded-full border border-blue-100 bg-white px-4 py-2"
+                >
+                  <Text className="text-sm font-semibold text-blue-700">
+                    {amenity}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
           <View className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100">
             <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
               Past reviews
@@ -194,16 +243,19 @@ export default function ListingDetailScreen() {
             ))}
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 bg-white px-6 pb-10 pt-4 shadow-lg shadow-slate-200">
+      <Animated.View
+        className="absolute left-0 right-0 bg-white px-6 pb-10 pt-4 shadow-lg shadow-slate-200"
+        style={{ bottom: 0 }}
+      >
         <Pressable
           className="items-center justify-center rounded-full bg-blue-600 py-4"
           onPress={() => setRentSheetVisible(true)}
         >
           <Text className="text-base font-semibold text-white">Rent to Earn</Text>
         </Pressable>
-      </View>
+      </Animated.View>
 
       <Modal animationType="slide" transparent visible={rentSheetVisible}>
         <View className="flex-1 justify-end bg-black/40">
