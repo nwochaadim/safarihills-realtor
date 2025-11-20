@@ -11,61 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-
-const APARTMENTS = [
-  {
-    id: "apartment-1",
-    name: "Azure Heights Studio",
-    location: "Orchid, Lekki",
-    price: "₦65,000",
-    points: 120,
-    rating: 4.8,
-    guests: 2,
-    image:
-      "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
-    type: "Studio",
-    amenities: ["wifi", "ac", "smart tv", "balcony"],
-  },
-  {
-    id: "apartment-2",
-    name: "Lagoon View Duplex",
-    location: "Victoria Island, Lagos",
-    price: "₦150,000",
-    points: 260,
-    rating: 4.9,
-    guests: 6,
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
-    type: "4 bed",
-    amenities: ["wifi", "pool", "gym", "cinema"],
-  },
-  {
-    id: "apartment-3",
-    name: "Palm Crest Loft",
-    location: "Ikate, Lekki",
-    price: "₦85,000",
-    points: 170,
-    rating: 4.7,
-    guests: 4,
-    image:
-      "https://images.unsplash.com/photo-1505692794400-4d1d82cd5d05?auto=format&fit=crop&w=1200&q=80",
-    type: "2 bed",
-    amenities: ["wifi", "ac", "gym"],
-  },
-  {
-    id: "apartment-4",
-    name: "Skyline Executive Suite",
-    location: "Eko Atlantic, Lagos",
-    price: "₦210,000",
-    points: 340,
-    rating: 5,
-    guests: 3,
-    image:
-      "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80",
-    type: "1 bed",
-    amenities: ["wifi", "ac", "smart tv", "balcony"],
-  },
-];
+import { LISTINGS, Listing } from "../../lib/listings";
 
 const TYPES = [
   "Single shared",
@@ -99,9 +45,6 @@ const INITIAL_FILTER_STATE = {
 
 const GUEST_OPTIONS = ["1", "2", "3", "4", "5", "6+"];
 
-const parsePrice = (price: string) =>
-  Number(price.replace(/[^\d]/g, ""));
-
 const formatCurrencyInput = (value: string) => {
   const digitsOnly = value.replace(/[^\d]/g, "");
   if (!digitsOnly) return "";
@@ -114,14 +57,14 @@ export default function HomeScreen() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const filteredApartments = useMemo(() => {
-    return APARTMENTS.filter((apartment) => {
+    return LISTINGS.filter((apartment) => {
       if (filters.type && apartment.type !== filters.type) return false;
       if (filters.guests) {
         const guestLimit =
           filters.guests === "6+" ? 6 : Number(filters.guests);
         if (apartment.guests < guestLimit) return false;
       }
-      const nightlyRate = parsePrice(apartment.price);
+      const nightlyRate = apartment.pricePerNight;
       const minBudgetValue = filters.minBudget
         ? Number(filters.minBudget.replace(/,/g, ""))
         : null;
@@ -156,10 +99,15 @@ export default function HomeScreen() {
 
   const resetFilters = () => setFilters(INITIAL_FILTER_STATE);
 
-  const renderApartment = ({ item }: { item: (typeof APARTMENTS)[0] }) => (
-    <View className="mb-6 overflow-hidden rounded-[32px] bg-white shadow-lg shadow-slate-200">
+  const renderApartment = ({ item }: { item: Listing }) => (
+    <Pressable
+      className="mb-6 overflow-hidden rounded-[32px] bg-white shadow-lg shadow-slate-200"
+      onPress={() =>
+        router.push({ pathname: "/listing/[id]", params: { id: item.id } })
+      }
+    >
       <ImageBackground
-        source={{ uri: item.image }}
+        source={{ uri: item.coverImage }}
         className="h-56 w-full overflow-hidden"
         imageStyle={{ borderTopLeftRadius: 32, borderTopRightRadius: 32 }}
       >
@@ -182,7 +130,7 @@ export default function HomeScreen() {
             {item.name}
           </Text>
           <Text className="text-base font-semibold text-blue-600">
-            {item.price}
+            ₦{item.pricePerNight.toLocaleString()}
             <Text className="text-xs font-medium text-slate-500"> / night</Text>
           </Text>
         </View>
@@ -202,7 +150,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 
   return (
