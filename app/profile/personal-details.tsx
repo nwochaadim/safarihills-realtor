@@ -1,16 +1,19 @@
 import { BackButton } from "@/components/BackButton";
 import { useRouter } from "expo-router";
-import { Pressable, SafeAreaView, ScrollView, Text, View } from "react-native";
-
-const details = [
-  { label: "First name", value: "Adim" },
-  { label: "Last name", value: "Eze" },
-  { label: "Phone number", value: "+234 812 345 6789" },
-  { label: "Email", value: "adim@gmail.com" },
-];
+import { useState } from "react";
+import {
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function PersonalDetailsScreen() {
   const router = useRouter();
+  const [firstName, setFirstName] = useState("Adim");
+  const [lastName, setLastName] = useState("Eze");
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -30,31 +33,66 @@ export default function PersonalDetailsScreen() {
         </Text>
 
         <View className="mt-6 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm shadow-slate-50">
-          {details.map((item, index) => (
-            <View
-              key={item.label}
-              className={`py-3 ${index !== 0 ? "border-t border-slate-100" : ""}`}
-            >
-              <Text className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                {item.label}
-              </Text>
-              <Text className="mt-1 text-base font-semibold text-slate-900">
-                {item.value}
-              </Text>
-            </View>
-          ))}
+          <View className="pb-4">
+            <Text className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              First name
+            </Text>
+            <TextInput
+              className="mt-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-base font-semibold text-slate-900"
+              value={firstName}
+              onChangeText={setFirstName}
+              autoComplete="given-name"
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View className="border-t border-slate-100 py-4">
+            <Text className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              Last name
+            </Text>
+            <TextInput
+              className="mt-2 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-base font-semibold text-slate-900"
+              value={lastName}
+              onChangeText={setLastName}
+              autoComplete="family-name"
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View className="border-t border-slate-100 py-4">
+            <Text className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              Phone number
+            </Text>
+            <Text className="mt-2 text-base font-semibold text-slate-900">
+              +234 812 345 6789
+            </Text>
+          </View>
+
+          <View className="border-t border-slate-100 pt-4">
+            <Text className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              Email
+            </Text>
+            <Text className="mt-2 text-base font-semibold text-slate-900">
+              adim@gmail.com
+            </Text>
+          </View>
         </View>
 
         <View className="mt-6 space-y-3">
+          <Pressable className="rounded-full bg-blue-600 py-4 shadow-sm shadow-blue-200">
+            <Text className="text-center text-base font-semibold text-white">
+              Update profile
+            </Text>
+          </Pressable>
           <Pressable
-            className="rounded-full bg-blue-600 py-4"
+            className="rounded-full border border-slate-200 bg-white py-3 mt-8"
             onPress={() => router.replace("/auth/login")}
           >
-            <Text className="text-center text-base font-semibold text-white">
+            <Text className="text-center text-base font-semibold text-slate-600">
               Sign out
             </Text>
           </Pressable>
-          <Pressable className="rounded-full border border-rose-200 py-4">
+          <Pressable className="rounded-full border border-rose-200 bg-rose-50 py-3 mt-2">
             <Text className="text-center text-base font-semibold text-rose-600">
               Delete account
             </Text>
