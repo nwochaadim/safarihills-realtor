@@ -1,5 +1,6 @@
-import { SafeAreaView, ScrollView, Text, View, Pressable } from "react-native";
+import { BackButton } from "@/components/BackButton";
 import { useRouter } from "expo-router";
+import { Pressable, SafeAreaView, ScrollView, Text, View } from "react-native";
 
 const details = [
   { label: "First name", value: "Adim" },
@@ -17,9 +18,7 @@ export default function PersonalDetailsScreen() {
         contentContainerStyle={{ padding: 24, paddingBottom: 80 }}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-sm font-semibold text-blue-600">‹ Back</Text>
-        </Pressable>
+        <BackButton onPress={() => router.back()} />
         <Text className="mt-2 text-xs font-semibold uppercase tracking-[0.4em] text-blue-500">
           Profile
         </Text>

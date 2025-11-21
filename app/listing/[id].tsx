@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { BackButton } from "@/components/BackButton";
 import { LISTINGS } from "../../lib/listings";
 
 const { width } = Dimensions.get("window");
@@ -204,13 +205,7 @@ export default function ListingDetailScreen() {
             right: 24,
           }}
         >
-          <Pressable
-            className="w-12 items-center justify-center rounded-full bg-white/85 py-3"
-            onPress={() => router.back()}
-            hitSlop={12}
-          >
-            <Feather name="arrow-left" size={20} color="#0f172a" />
-          </Pressable>
+          <BackButton onPress={() => router.back()} />
         </View>
         <View
           className="flex-row items-center justify-center gap-2"

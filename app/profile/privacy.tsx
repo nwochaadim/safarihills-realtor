@@ -1,14 +1,13 @@
-import { Pressable, SafeAreaView, Text, View } from "react-native";
+import { SafeAreaView, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import { BackButton } from "@/components/BackButton";
 
 export default function PrivacyScreen() {
   const router = useRouter();
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <View className="flex-1 px-6 py-8">
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-sm font-semibold text-blue-600">‹ Back</Text>
-        </Pressable>
+        <BackButton onPress={() => router.back()} />
         <Text className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">
           Legal
         </Text>
