@@ -4,6 +4,8 @@ import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Dimensions,
+  FlatList,
   Modal,
   Pressable,
   SafeAreaView,
@@ -16,7 +18,7 @@ import {
 const referralCode = "SAF-2048";
 
 const referralSteps = [
-  { label: "Invite a friend", detail: "Share your code to fellow agents." },
+  { label: "Invite a friend", detail: "Share your code to fellow realtors." },
   { label: "Friend earns 10pts on signup.", detail: "They get rewarded instantly." },
   { label: "After their first booking", detail: "Your rewards unlock automatically." },
   { label: "You earn NGN2,000", detail: "Cash reward paid directly to your wallet." },
@@ -29,12 +31,27 @@ const referralList = [
   { name: "Adaeze Obi", date: "Signed up • Feb 20, 2024" },
   { name: "Seyi Adebayo", date: "Signed up • Feb 10, 2024" },
   { name: "Tosin Alabi", date: "Signed up • Feb 2, 2024" },
+  { name: "Binta Garba", date: "Signed up • Jan 25, 2024" },
+  { name: "Tunde Adeyemi", date: "Signed up • Jan 18, 2024" },
+  { name: "Ngozi Nwosu", date: "Signed up • Jan 10, 2024" },
+  { name: "Kola Akin", date: "Signed up • Jan 3, 2024" },
+  { name: "Zainab Musa", date: "Signed up • Dec 28, 2023" },
+  { name: "Emeka Obi", date: "Signed up • Dec 20, 2023" },
+  { name: "Latifa Balogun", date: "Signed up • Dec 12, 2023" },
+  { name: "Ire Adesina", date: "Signed up • Dec 4, 2023" },
+  { name: "Funmi Oyewole", date: "Signed up • Nov 28, 2023" },
+  { name: "Gbenga Bello", date: "Signed up • Nov 20, 2023" },
 ];
 
 export default function ReferralsScreen() {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [showReferrals, setShowReferrals] = useState(false);
+  const [visibleReferrals, setVisibleReferrals] = useState(5);
+  const modalMaxHeight = Math.min(
+    640,
+    Dimensions.get("window").height * 0.78
+  );
 
   const handleCopy = async () => {
     await Clipboard.setStringAsync(referralCode);
@@ -164,7 +181,10 @@ export default function ReferralsScreen() {
         onRequestClose={() => setShowReferrals(false)}
       >
         <View className="flex-1 justify-end bg-black/40">
-          <View className="rounded-t-[32px] bg-white px-6 pb-10 pt-6">
+          <View
+            className="rounded-t-[32px] bg-white px-6 pb-10 pt-6"
+            style={{ maxHeight: modalMaxHeight }}
+          >
             <View className="mb-6 h-1 w-14 self-center rounded-full bg-slate-200" />
             <View className="flex-row items-center justify-between">
               <Text className="text-2xl font-bold text-slate-900">
@@ -174,27 +194,53 @@ export default function ReferralsScreen() {
                 <Feather name="x" size={22} color="#0f172a" />
               </Pressable>
             </View>
-            <Text className="mt-1 text-sm text-slate-500">
+            <View className="mt-3 flex-row items-center justify-between rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3">
+              <View>
+                <Text className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">
+                  Total referrals
+                </Text>
+                <Text className="text-lg font-semibold text-slate-900">
+                  {referralList.length} people
+                </Text>
+              </View>
+              <View className="rounded-full bg-white px-3 py-1">
+                <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
+                  Active
+                </Text>
+              </View>
+            </View>
+            <Text className="mt-3 text-sm text-slate-500">
               People who joined with your code and their signup dates.
             </Text>
 
             <View className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/70">
-              {referralList.map((person, index) => (
-                <View
-                  key={person.name}
-                  className={`flex-row items-center justify-between px-4 py-3 ${
-                    index !== 0 ? "border-t border-slate-100" : ""
-                  }`}
-                >
-                  <View>
-                    <Text className="text-base font-semibold text-slate-900">
-                      {person.name}
-                    </Text>
-                    <Text className="text-sm text-slate-500">{person.date}</Text>
+              <FlatList
+                data={referralList.slice(0, visibleReferrals)}
+                keyExtractor={(item) => item.name}
+                scrollEnabled
+                showsVerticalScrollIndicator={false}
+                onEndReachedThreshold={0.2}
+                onEndReached={() =>
+                  setVisibleReferrals((prev) =>
+                    Math.min(prev + 5, referralList.length)
+                  )
+                }
+                renderItem={({ item, index }) => (
+                  <View
+                    className={`flex-row items-center justify-between px-4 py-3 ${
+                      index !== 0 ? "border-t border-slate-100" : ""
+                    }`}
+                  >
+                    <View>
+                      <Text className="text-base font-semibold text-slate-900">
+                        {item.name}
+                      </Text>
+                      <Text className="text-sm text-slate-500">{item.date}</Text>
+                    </View>
+                    <Feather name="check-circle" size={18} color="#16a34a" />
                   </View>
-                  <Feather name="check-circle" size={18} color="#16a34a" />
-                </View>
-              ))}
+                )}
+              />
             </View>
           </View>
         </View>
